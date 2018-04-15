@@ -1,25 +1,22 @@
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
+import pickle as pck
 
 
 
 def read_csv(file):
-    with open(file) as f:
-        userIDs = []
-        X_train = []
-        Y_train = []
+    with open(file) as csvfile:
+        parameters = {}
+        reader = csv.DictReader(csvfile)
         first = True
-        for line in f:
-            if first:
-                first = False
-            else:
-                line = line.split(",")
-                userIDs.append(line[0])
-                X_train.append(line[1:3])
-                Y_train.append(line[3])
+        count = 1
+        for row in reader:
+            parameters["W" + str(count)] = row["W" + str(count)]
+            parameters["b" + str(count)] = row["b" + str(count)]
+            count += 1
 
-        return np.array(X_train, dtype=np.int), np.array(Y_train, dtype=np.int), np.unique(np.array(userIDs, dtype=np.int)), np.array(userIDs, dtype=np.int)
+        return parameters
 
 def sigmoid(Z):
     return 1/(1 + np.exp(-Z))
@@ -151,20 +148,20 @@ def update_parameters(parameters, grads, layers_dim, alpha = 0.01):
 def model(X_train, Y_train, user, layers_dim, C = 4, lr = 0.1):
     L = len(layers_dim)
     parameters = []
-    with open("all_users.csv") as f:
+    flag = False
+    with open("all_users.csv", "r+") as f:
         for l in f:
-            l = l.split(",")
             l = np.array(l, dtype=np.int)
             if user in l:
-                None
-                # open users/user##_profile.csv
-            else:
-                parameters = initialize_parameters(L, layers_dim)
-    print (parameters)
+                parameters = pck.load(open("users/user" + str(user) + "_profile.p", "rb"))
+                flag = True
+                break
+        if not flag:
+            parameters = initialize_parameters(L, layers_dim)
+            f.write(str(user))
     # global_cost = {}
     # for id in all_user:
     #     global_cost[str(id)] = []
-
     # Stochastic gradient descent
     X = X_train.reshape((2,1))
     Y_oh = convert_to_oh(Y_train).reshape((C+1, 1))
@@ -172,11 +169,8 @@ def model(X_train, Y_train, user, layers_dim, C = 4, lr = 0.1):
     cost = cost_func(Y_oh, AL)
     grads = backward_probagation(Y_oh, caches, layers_dim)
     parameters = update_parameters(parameters, grads, layers_dim, lr)
-    with open("users/user1_profile.csv", "w") as csvfile:
-        fieldnames = ["W1", "b1", "W2", "b2", "W3", "b3"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerow(parameters)
+    pck.dump(parameters, open("users/user" + str(user) + "_profile.p", "wb"))
+
     # global_cost[str(userID)].append(cost)
 
     # for id in all_user:
@@ -195,45 +189,25 @@ def predict(X, user, parameters, layers_dim):
 
     ZL = np.dot(parameters["W" + str(L-1)], A_prev) + parameters["b" + str(L-1)]
     AL = softmax(ZL)
-    Y = np.argmax(AL)
     print (AL)
+    Y = np.argmax(AL)
     return Y
 
-
-
 if __name__ == "__main__":
-    # data = input("Input data: ")
-    # print(data.split(" "))
-    # X_train, Y_train, all_user, user_train = read_csv("data.csv")
-    # Y_oh = convert_to_oh(Y_train[0])
     training_input = input("please enter input (user, prev1, prev2, Y): ")
     training_input = training_input.split(",")
     user = int(training_input[0])
-    X_train = np.array(training_input[1:3], dtype=np.int)
+    X_train = np.array(training_input[1:3], dtype=np.int).reshape((2,1))
     Y_train = np.array(training_input[-1], dtype=np.int)
-
-    # softmax = softmax(np.array(data.split(" "), dtype=np.int).reshape((4,1)))
-    # print (softmax)
-    # print(np.sum(softmax))
     layers_dim = [2,6,10,5]
-    # parameters = initialize_parameters(userIDs, len(layers_dim), layers_dim)
-    # caches, AL = forward_probagation(X_train[1].reshape((2,1)), layers_dim, parameters, userIDs[0])
-    # # caches, userID, AL = caches
-    # cost = cost_func(Y_oh.reshape((5,1)), AL)
-    # grads, userID = backward_probagation(Y_oh.reshape((5,1)) ,caches, layers_dim)
-    # updated_parameters = update_parameters(parameters, grads, userID, layers_dim, alpha = 0.01)
-    # print(AL)
-    # print(np.sum(AL))
-    # print(Y_oh.shape)
-    # print(cost)
-    # X = [[1],[1]]
-    # user = 3
     parameters = model(X_train, Y_train, user, layers_dim)
 
-    # vector = convert_dictionary_to_vector(parameters[str(user)]["W2"])
-    # dictionary = convert_vector_to_dictionary(vector, layers_dim, l = 1)
-    # Y = predict(X, user, parameters, layers_dim)
-    # print (Y)
-    # print (vector)
-    # print (dictionary)
-    # print(parameters[str(user)]["W2"])
+
+    test = input("Do you want to test?(y/n)")
+    if test == "y":
+        test_input = input("Please enter test input (userID, prev1, prev2)")
+        test_input = test_input.split(",")
+        user = int(test_input[0])
+        X = np.array(test_input[1:3], dtype=np.int).reshape((2,1))
+        Y = predict(X, user, parameters, layers_dim)
+        print (Y)
