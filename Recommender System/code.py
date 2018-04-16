@@ -152,13 +152,14 @@ def model(X_train, Y_train, user, layers_dim, C = 4, lr = 0.1):
     with open("all_users.csv", "r+") as f:
         for l in f:
             l = np.array(l, dtype=np.int)
+            print(l)
             if user in l:
                 parameters = pck.load(open("users/user" + str(user) + "_profile.p", "rb"))
                 flag = True
                 break
         if not flag:
             parameters = initialize_parameters(L, layers_dim)
-            f.write(str(user))
+            f.write(str(user) + "\n")
     # global_cost = {}
     # for id in all_user:
     #     global_cost[str(id)] = []
