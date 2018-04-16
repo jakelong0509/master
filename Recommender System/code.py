@@ -2,78 +2,7 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 import pickle as pck
-
-
-
-def read_csv(file):
-    with open(file) as csvfile:
-        parameters = {}
-        reader = csv.DictReader(csvfile)
-        first = True
-        count = 1
-        for row in reader:
-            parameters["W" + str(count)] = row["W" + str(count)]
-            parameters["b" + str(count)] = row["b" + str(count)]
-            count += 1
-
-        return parameters
-
-def sigmoid(Z):
-    return 1/(1 + np.exp(-Z))
-
-def sigmoid_backward(dA, Z):
-    s = 1/(1 + np.exp(-Z))
-    dZ = dA * s * (1 - s)
-    return dZ
-
-def softmax(Z):
-    exps = np.exp(Z - np.max(Z))
-    return exps / np.sum(exps)
-
-def softmax_backward(AL, Y):
-    dZ = AL - Y
-    return dZ
-
-def convert_to_oh(Y_train, C=4):
-    Y = np.eye(C+1)[Y_train.reshape(-1)]
-    return Y
-
-def convert_dictionary_to_vector(dictionary):
-    row = dictionary.shape[0] # 6
-    column = dictionary.shape[1] # 2
-    vector = np.zeros(row * column) # 12
-    start = 0
-    for c in range(column):
-        temp = dictionary[:,c] # (6,1)
-        end = row * (c + 1)
-        vector[start : end] = temp
-        start = end
-
-
-    return np.array(vector, dtype = np.float)
-
-def convert_vector_to_dictionary(vector, layers_dim, l):
-    row = layers_dim[l+1]
-    column = layers_dim[l]
-    dictionary = []
-    start = 0
-    for c in range(column):
-        end = row * (c + 1)
-        temp = vector[start:end]
-        print (temp)
-        start = end
-        dictionary.append(temp)
-
-    return np.array(dictionary, dtype=np.float).T
-
-
-def initialize_parameters(n_a, layers_dim):
-    parameters = {}
-    for n in range(n_a-1):
-        parameters["W" + str(n+1)] = np.random.randn(layers_dim[n+1], layers_dim[n]) * np.sqrt(2/(layers_dim[n+1] + layers_dim[n]))
-        parameters["b" + str(n+1)] = np.ones((layers_dim[n+1],1))
-
-    return parameters
+from utils import read_csv, sigmoid, sigmoid_backward, softmax, softmax_backward, convert_to_oh, convert_dictionary_to_vector, convert_vector_to_dictionary, initialize_parameters
 
 def cell_forward(W, b, A_prev, type="sigmoid"):
     Z = np.dot(W, A_prev) + b
