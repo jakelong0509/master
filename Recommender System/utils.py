@@ -30,7 +30,7 @@ def softmax_backward(AL, Y):
     return dZ
 
 def convert_to_oh(Y_train, C=4):
-    Y = np.eye(C+1)[Y_train.reshape(-1)]
+    Y = np.eye(C)[Y_train.reshape(-1)]
     return Y
 
 def convert_dictionary_to_vector(dictionary):
@@ -67,5 +67,23 @@ def initialize_parameters(n_a, layers_dim):
     for n in range(n_a-1):
         parameters["W" + str(n+1)] = np.random.randn(layers_dim[n+1], layers_dim[n]) * np.sqrt(2/(layers_dim[n+1] + layers_dim[n]))
         parameters["b" + str(n+1)] = np.ones((layers_dim[n+1],1))
+
+    return parameters
+
+def add_parameters(sn, parameters, layers_dim):
+    L = len(layers_dim)
+    for i in range(sn):
+        parameterWToAdd = (np.random.randn(layers_dim[-2]) * np.sqrt(2/layers_dim[-1] + layers_dim[-2])).reshape((1,layers_dim[-2]))
+        parameterbToAdd = np.ones((1,1))
+        parameters["W" + str(L-1)] = np.append(parameters["W" + str(L-1)],parameterWToAdd, axis=0)
+        parameters["b" + str(L-1)] = np.append(parameters["b" + str(L-1)],parameterbToAdd, axis=0)
+
+    return parameters
+
+def subtract_parameters(sn, parameters, layers_dim):
+    L = len(layers_dim)
+    for i in range(sn):
+        parameters["W" + str(L - 1)] = np.delete(parameters["W" + str(L - 1)], -1, axis=0)
+        parameters["b" + str(L - 1)] = np.delete(parameters["b" + str(L - 1)], -1, axis=0)
 
     return parameters

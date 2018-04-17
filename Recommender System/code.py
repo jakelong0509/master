@@ -2,7 +2,7 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 import pickle as pck
-from utils import read_csv, sigmoid, sigmoid_backward, softmax, softmax_backward, convert_to_oh, convert_dictionary_to_vector, convert_vector_to_dictionary, initialize_parameters
+from utils import read_csv, sigmoid, sigmoid_backward, softmax, softmax_backward, convert_to_oh, convert_dictionary_to_vector, convert_vector_to_dictionary, initialize_parameters, add_parameters, subtract_parameters
 
 def cell_forward(W, b, A_prev, type="sigmoid"):
     Z = np.dot(W, A_prev) + b
@@ -74,7 +74,7 @@ def update_parameters(parameters, grads, layers_dim, alpha = 0.01):
 
     return parameters
 
-def model(X_train, Y_train, user, layers_dim, C = 4, lr = 0.1):
+def model(X_train, Y_train, user, userName, layers_dim, C = 4, lr = 0.1):
     L = len(layers_dim)
     parameters = []
     flag = False
@@ -83,7 +83,12 @@ def model(X_train, Y_train, user, layers_dim, C = 4, lr = 0.1):
             l = np.array(l, dtype=np.int)
             print(l)
             if user in l:
-                parameters = pck.load(open("users/user" + str(user) + "_profile.p", "rb"))
+                prevLayer = pck.load(open("prevlayer.p", "rb"))
+                parameters = pck.load(open("users/" + userName + "_profile.p", "rb"))
+                if int(prevLayer) < C:
+                    parameters = add_parameters(np.abs(C - prevLayer), parameters, layers_dim)
+                elif int(prevLayer) > C:
+                    parameters = subtract_parameters(np.abs(C - prevLayer), parameters, layers_dim)
                 flag = True
                 break
         if not flag:
@@ -94,12 +99,13 @@ def model(X_train, Y_train, user, layers_dim, C = 4, lr = 0.1):
     #     global_cost[str(id)] = []
     # Stochastic gradient descent
     X = X_train.reshape((2,1))
-    Y_oh = convert_to_oh(Y_train).reshape((C+1, 1))
+    Y_oh = convert_to_oh(Y_train, C).reshape((C, 1))
     caches, AL = forward_probagation(X, layers_dim, parameters)
     cost = cost_func(Y_oh, AL)
     grads = backward_probagation(Y_oh, caches, layers_dim)
     parameters = update_parameters(parameters, grads, layers_dim, lr)
-    pck.dump(parameters, open("users/user" + str(user) + "_profile.p", "wb"))
+    pck.dump(parameters, open("users/" + userName + "_profile.p", "wb"))
+    pck.dump(C, open("prevLayer.p", "wb"))
 
     # global_cost[str(userID)].append(cost)
 
@@ -130,8 +136,9 @@ if __name__ == "__main__":
     X_train = np.array(training_input[1:3], dtype=np.int).reshape((2,1))
     Y_train = np.array(training_input[-1], dtype=np.int)
     layers_dim = [2,6,10,5]
-    parameters = model(X_train, Y_train, user, layers_dim)
-
+    parameters = model(X_train, Y_train, user, "Jake", layers_dim, C = layers_dim[-1])
+    print(parameters["W" + str(len(layers_dim) - 1)])
+    print(parameters["W" + str(len(layers_dim) - 1)].shape)
 
     test = input("Do you want to test?(y/n)")
     if test == "y":
