@@ -6,7 +6,7 @@
 # Cut up relevant part of the state space into boxes
 # Now we have a discrete state space
 # We just name these 0,1, etc.
-# Not we can use the tabular method
+# Now we can use the tabular method
 
 # ______Hidden Complexities______
 # How to we choose upper and lower limits of the box?
