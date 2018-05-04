@@ -1,0 +1,28 @@
+________Plugging in a neural network_______
+  You've seen how we can plug in a Theano / TensorFlow model into q_learning.py script
+  And you know how to build an neural netowrk
+  Put them together!
+  Try removing RBF layer, since presumably a deep neural netowrk will automatically learn features
+
+________Catastrophic Forgetting_______
+  Lots of attention recently, in relation to "transfer learning"
+  Train AI on one game, keep some weights, train on another game
+  Showed the neural net can be traned such that the AI still performs well on the first game
+  So it didn't just learn the 2nd game and forget the 1st game
+  This is noteworthy because it's not hot neural networks work by default
+  More typically we would expect the neural net to forget how to play the 1st game
+
+
+  Forgetting effect doestn't only apply across different tasks
+  Stochastic / batch gradient descent -> cost can "jump" around
+  Seems more pronounced on highly nonlinear regression problems
+  We'd like the data in cost function to represent true districution of data
+  Even using all training data simultaneously is only an approximation of the "true" data
+  E.g. clinical trial for a drug, we sample 1000 subjects, We hope they are representative of the population as a whole
+
+
+  So when we use batch / stochastic GD, the approximation becomes even worse
+  We always proceed from start state to end state
+  No randomization, which recommended in SGD / BGD
+  Will forget about earlier samples
+  (Also, not a true gradient because the target uses the model to make a prediction)
